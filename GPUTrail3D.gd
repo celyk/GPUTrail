@@ -1,19 +1,42 @@
 @tool
 class_name GPUTrail3D extends GPUParticles3D
 
-## [br]A node for creating a ribbon trail effect.[br]
+## [br]A node for creating a ribbon trail effect.
+## [br][color=purple]Made by celyk[/color]
+##
+## This node serves as an alternative to CPU based trails.[br]
 
 
 # PUBLIC
 
+## Length is the number of steps in the trail
 @export var length = 100 : set = _set_length
+
+## The main texture of the trail. 
+## Set [member vertical_texture] to adjust for orientation
+## Enable [member use_red_as_alpha] to use the red color channel as alpha
 @export var texture : Texture : set = _set_texture
+
+## A color ramp for modulating the color along the length of the trail
 @export var color_ramp : GradientTexture1D : set = _set_color_ramp
+
+## A curve for modulating the size along the length of the trail
 @export var curve : CurveTexture : set = _set_curve
+
+## Set [member vertical_texture] to adjust for orientation
 @export var vertical_texture := false : set = _set_vertical_texture
+
+## Enable [member use_red_as_alpha] to use the red color channel of [member texture] as alpha
 @export var use_red_as_alpha := false : set = _set_use_red_as_alpha
+
+## Makes trail face camera. I haven't finished this yet
 @export var billboard := false : set = _set_billboard
+
+## Enable to improve the mapping of [member texture] to the trail
 @export var dewiggle := false : set = _set_dewiggle
+
+## Enable snap the start of the trail to the nodes position. This may not be noticeable unless you
+## have changed [member fixed_fps], which you can use to optimize the trail
 @export var snap_to_transform := false : set = _set_snap_to_transform
 
 
@@ -72,29 +95,29 @@ func _set_curve(value):
 		draw_pass_1.material.set_shader_parameter("curve", preload(_DEFAULT_CURVE))
 func _set_vertical_texture(value):
 	vertical_texture = value
-	flags = _set_flag(flags,0,value)
-	draw_pass_1.material.set_shader_parameter("flags", flags)
+	_flags = _set_flag(_flags,0,value)
+	draw_pass_1.material.set_shader_parameter("flags", _flags)
 func _set_use_red_as_alpha(value):
 	use_red_as_alpha = value
-	flags = _set_flag(flags,1,value)
-	draw_pass_1.material.set_shader_parameter("flags", flags)
+	_flags = _set_flag(_flags,1,value)
+	draw_pass_1.material.set_shader_parameter("flags", _flags)
 func _set_billboard(value):
 	billboard = value
-	flags = _set_flag(flags,2,value)
-	draw_pass_1.material.set_shader_parameter("flags", flags)
+	_flags = _set_flag(_flags,2,value)
+	draw_pass_1.material.set_shader_parameter("flags", _flags)
 func _set_dewiggle(value):
 	dewiggle = value
-	flags = _set_flag(flags,3,value)
-	draw_pass_1.material.set_shader_parameter("flags", flags)
+	_flags = _set_flag(_flags,3,value)
+	draw_pass_1.material.set_shader_parameter("flags", _flags)
 func _set_snap_to_transform(value):
 	snap_to_transform = value
-	flags = _set_flag(flags,4,value)
-	draw_pass_1.material.set_shader_parameter("flags", flags)
+	_flags = _set_flag(_flags,4,value)
+	draw_pass_1.material.set_shader_parameter("flags", _flags)
 
 func _process(dt):
 	if(snap_to_transform):
 		draw_pass_1.material.set_shader_parameter("emmission_transform", global_transform)
 
-var flags = 0
+var _flags = 0
 func _set_flag(i, idx : int, value : bool):
 	return (i & ~(1 << idx)) | (int(value) << idx)
