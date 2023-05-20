@@ -12,15 +12,16 @@ class_name GPUTrail3D extends GPUParticles3D
 ## Length is the number of steps in the trail
 @export var length = 100 : set = _set_length
 
-## The main texture of the trail. 
-## Set [member vertical_texture] to adjust for orientation
-## Enable [member use_red_as_alpha] to use the red color channel as alpha
+## The main texture of the trail.[br]
+## [br]Set [member vertical_texture] to adjust for orientation[br]
+##
+## [br]Enable [member use_red_as_alpha] to use the red color channel as alpha
 @export var texture : Texture : set = _set_texture
 
 ## A color ramp for modulating the color along the length of the trail
 @export var color_ramp : GradientTexture1D : set = _set_color_ramp
 
-## A curve for modulating the size along the length of the trail
+## A curve for modulating the width along the length of the trail
 @export var curve : CurveTexture : set = _set_curve
 
 ## Set [member vertical_texture] to adjust for orientation
@@ -35,7 +36,7 @@ class_name GPUTrail3D extends GPUParticles3D
 ## Enable to improve the mapping of [member texture] to the trail
 @export var dewiggle := false : set = _set_dewiggle
 
-## Enable snap the start of the trail to the nodes position. This may not be noticeable unless you
+## Enable [member snap_to_transform] to snap the start of the trail to the nodes position. This may not be noticeable unless you
 ## have changed [member fixed_fps], which you can use to optimize the trail
 @export var snap_to_transform := false : set = _set_snap_to_transform
 
