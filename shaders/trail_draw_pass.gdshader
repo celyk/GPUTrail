@@ -2,7 +2,8 @@ shader_type spatial;
 
 render_mode unshaded,world_vertex_coords,cull_disabled;
 
-uniform sampler2D tex : repeat_disable, hint_default_white;
+uniform sampler2D tex : repeat_disable, source_color, hint_default_white;
+uniform sampler2D color_ramp : repeat_disable, source_color, hint_default_white;
 uniform sampler2D curve : repeat_disable, hint_default_white;
 uniform mat4 emmission_transform = mat4(1);
 uniform int flags = 0;
@@ -51,12 +52,7 @@ void vertex(){
 	float h = textureLod(curve, vec2(UV.x), 0.0).x;//h=1.0;
 	
 	VERTEX = mix(a,b,(UV.y-0.5)*h + 0.5);
-	
-	if(vertical_texture){
-		UV = UV.yx;
-		//UV.x = 1.0 - UV.x;
-	}
-	
+
 	if(dewiggle){
 		scale_interp = h;
 		UV *= scale_interp;
@@ -65,19 +61,29 @@ void vertex(){
 
 void fragment(){
 	vec2 base_uv = UV;
-	
+
 	if(dewiggle){
 		base_uv /= scale_interp;
 	}
 	
+	vec2 raw_uv = base_uv;
+
+	if(vertical_texture){
+		base_uv = base_uv.yx;
+	}
+	
 	vec4 T = texture(tex, base_uv);
-	ALBEDO = T.xyz;
-	ALPHA = T.w;
+	ALBEDO = T.rgb;
+	ALPHA = T.a;
 	
 	if(use_red_as_alpha){
 		ALBEDO = vec3(1);
-		ALPHA = T.x;
+		ALPHA = T.r;
 	}
+	
+	T = texture(color_ramp, raw_uv);
+	ALBEDO *= T.rgb;
+	ALPHA *= T.a;
 	
 	//ALBEDO = vec3(UV,0);
 	

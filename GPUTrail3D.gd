@@ -8,6 +8,7 @@ class_name GPUTrail3D extends GPUParticles3D
 
 @export var length = 100 : set = _set_length
 @export var texture : Texture : set = _set_texture
+@export var color_ramp : GradientTexture1D : set = _set_color_ramp
 @export var curve : CurveTexture : set = _set_curve
 @export var vertical_texture := false : set = _set_vertical_texture
 @export var use_red_as_alpha := false : set = _set_use_red_as_alpha
@@ -60,6 +61,9 @@ func _set_texture(value):
 		draw_pass_1.material.set_shader_parameter("tex", texture)
 	else:
 		draw_pass_1.material.set_shader_parameter("tex", preload(_DEFAULT_TEXTURE))
+func _set_color_ramp(value):
+	color_ramp = value
+	draw_pass_1.material.set_shader_parameter("color_ramp", color_ramp)
 func _set_curve(value):
 	curve = value
 	if value: 
