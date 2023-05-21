@@ -115,9 +115,31 @@ func _set_snap_to_transform(value):
 	_flags = _set_flag(_flags,4,value)
 	draw_pass_1.material.set_shader_parameter("flags", _flags)
 
+@onready var _old_pos : Vector3 = global_position
 func _process(dt):
 	if(snap_to_transform):
 		draw_pass_1.material.set_shader_parameter("emmission_transform", global_transform)
+		
+	if(billboard):
+		var billboard_transform = global_transform
+		
+		var tangent = billboard_transform.basis[1].length() * (global_position - _old_pos).normalized()
+		#billboard_transform[1] = tangent/2.0
+		#billboard_transform[3] += billboard_transform[3]
+
+		var p = billboard_transform.basis[1]
+		var x = tangent
+		var angle = p.angle_to(x)
+		var rotation_axis = p.cross(x).normalized()
+		if rotation_axis: billboard_transform.basis = billboard_transform.basis.rotated(rotation_axis,angle)
+		billboard_transform.basis = billboard_transform.basis.scaled(Vector3(0.5,0.5,0.5))
+		billboard_transform.origin += billboard_transform.basis[1]
+
+		#RenderingServer.particles_set_emission_transform( get_base(), global_transform.scaled(Vector3(2,2,2)) )
+		
+		RenderingServer.instance_set_transform( get_instance(), get_parent().global_transform.inverse() * billboard_transform )
+	
+	_old_pos = global_position
 
 var _flags = 0
 func _set_flag(i, idx : int, value : bool):

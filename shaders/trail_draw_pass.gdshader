@@ -19,6 +19,7 @@ uniform bool snap_to_transform = false;*/
 #define dewiggle 		  bool(flags & 8)
 #define snap_to_transform bool(flags & 16)
 
+
 varying float scale_interp;
 void vertex(){
 	mat4 my_model_matrix = MODEL_MATRIX;
@@ -28,19 +29,29 @@ void vertex(){
 	}
 	
 	if(billboard){
-	
-		my_model_matrix[1] = (my_model_matrix[1]+my_model_matrix[2])/2.0;
-		my_model_matrix[2] = my_model_matrix[1];
-		my_model_matrix[0] = (my_model_matrix[0]+my_model_matrix[3])/2.0;
-		my_model_matrix[3] = my_model_matrix[0];
+		vec3 t0 = my_model_matrix[0].xyz-my_model_matrix[3].xyz;
+		vec3 t1 = my_model_matrix[1].xyz-my_model_matrix[2].xyz;
 		
-		vec3 up0 = normalize(cross(my_model_matrix[1].xyz-my_model_matrix[0].xyz,INV_VIEW_MATRIX[3].xyz));
-		vec3 up1 = up0;
+		//vec3 up1 = up0;
+		vec3 up0 = length(t0)*normalize(
+			cross(
+				my_model_matrix[3].xyz-INV_VIEW_MATRIX[3].xyz,
+				//-INV_VIEW_MATRIX[2].xyz,
+				t0));
+		vec3 up1 = length(t1)*normalize(
+			cross(
+				my_model_matrix[2].xyz-INV_VIEW_MATRIX[3].xyz,
+				//-INV_VIEW_MATRIX[2].xyz,
+				t1));
 		
-		my_model_matrix[1].xyz += up0;
-		my_model_matrix[2].xyz -= up0;
-		my_model_matrix[0].xyz += up1;
-		my_model_matrix[3].xyz -= up1;
+		my_model_matrix[0] = my_model_matrix[3];
+		my_model_matrix[1] = my_model_matrix[2];
+		
+		my_model_matrix[0].xyz += up0;
+		my_model_matrix[3].xyz -= up0;
+		
+		my_model_matrix[1].xyz += up1;
+		my_model_matrix[2].xyz -= up1;
 	}
 	
 	vec3 a = mix(my_model_matrix[1].xyz,my_model_matrix[0].xyz,UV.x);
