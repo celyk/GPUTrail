@@ -1,6 +1,6 @@
 @tool
+@icon("icon.png")
 class_name GPUTrail3D extends GPUParticles3D
-
 ## [br]A node for creating a ribbon trail effect.
 ## [br][color=purple]Made by celyk[/color]
 ##
@@ -119,14 +119,17 @@ func _set_snap_to_transform(value):
 func _process(dt):
 	if(snap_to_transform):
 		draw_pass_1.material.set_shader_parameter("emmission_transform", global_transform)
-		
+	
+	
+	await RenderingServer.frame_pre_draw
+	
 	if(billboard):
 		var billboard_transform = global_transform
 		
 		var tangent = billboard_transform.basis[1].length() * (global_position - _old_pos).normalized()
 		#billboard_transform[1] = tangent/2.0
 		#billboard_transform[3] += billboard_transform[3]
-
+		
 		var p = billboard_transform.basis[1]
 		var x = tangent
 		var angle = p.angle_to(x)
@@ -134,10 +137,10 @@ func _process(dt):
 		if rotation_axis: billboard_transform.basis = billboard_transform.basis.rotated(rotation_axis,angle)
 		billboard_transform.basis = billboard_transform.basis.scaled(Vector3(0.5,0.5,0.5))
 		billboard_transform.origin += billboard_transform.basis[1]
-
+		
 		#RenderingServer.particles_set_emission_transform( get_base(), global_transform.scaled(Vector3(2,2,2)) )
 		
-		RenderingServer.instance_set_transform( get_instance(), get_parent().global_transform.inverse() * billboard_transform )
+		RenderingServer.instance_set_transform( get_instance(), billboard_transform) #get_parent().global_transform.inverse() * billboard_transform )
 	
 	_old_pos = global_position
 

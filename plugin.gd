@@ -9,4 +9,4 @@ func _enter_tree():
 func _exit_tree():
 	# Clean-up of the plugin goes here.
 	# Always remember to remove it from the engine when deactivated.
-	remove_custom_type("MyButton")
+	remove_custom_type("GPUTrail3D")
