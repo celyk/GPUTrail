@@ -18,10 +18,15 @@ uniform bool snap_to_transform = false;*/
 #define billboard		  bool(flags & 4)
 #define dewiggle 		  bool(flags & 8)
 #define snap_to_transform bool(flags & 16)
+#define clip_overlaps bool(flags & 32)
 
 
 varying float scale_interp;
+varying vec2 clip;
+varying vec2 mesh_uv;
 void vertex(){
+	mesh_uv = UV;
+	
 	mat4 my_model_matrix = MODEL_MATRIX;
 	if(snap_to_transform && INSTANCE_CUSTOM.w==2.0){
 		my_model_matrix[1] = emmission_transform * vec4(0,1,0,1);
@@ -68,9 +73,27 @@ void vertex(){
 		scale_interp = h;
 		UV *= scale_interp;
 	}
+	
+		
+	clip.x = dot(VERTEX - INV_VIEW_MATRIX[3].xyz,cross(my_model_matrix[1].xyz - INV_VIEW_MATRIX[3].xyz,my_model_matrix[2].xyz - INV_VIEW_MATRIX[3].xyz));
+	clip.y = dot(VERTEX - INV_VIEW_MATRIX[3].xyz,cross(my_model_matrix[3].xyz - INV_VIEW_MATRIX[3].xyz,my_model_matrix[0].xyz - INV_VIEW_MATRIX[3].xyz));
 }
 
 void fragment(){
+	//if(billboard && !FRONT_FACING) discard;
+	
+	vec2 clip0 = clip;
+	float ababab = clip0.x*clip0.y;
+	//ababab += dFdx(ababab) + dFdy(ababab);
+	//clip0 -= fwidth(clip0);
+	if(clip_overlaps && ababab < 0.0) { 
+		
+		
+		
+		if(abs(mesh_uv.x-0.5)<0.5)
+			discard;
+	}
+	
 	vec2 base_uv = UV;
 
 	if(dewiggle){
@@ -83,7 +106,7 @@ void fragment(){
 		base_uv = base_uv.yx;
 	}
 	
-	vec4 T = texture(tex, base_uv);
+	vec4 T = textureLod(tex, base_uv, 0.0);
 	ALBEDO = T.rgb;
 	ALPHA = T.a;
 	
@@ -92,7 +115,7 @@ void fragment(){
 		ALPHA = T.r;
 	}
 	
-	T = texture(color_ramp, raw_uv);
+	T = textureLod(color_ramp, raw_uv, 0.0);
 	ALBEDO *= T.rgb;
 	ALPHA *= T.a;
 	

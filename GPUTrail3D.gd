@@ -1,6 +1,7 @@
 @tool
 @icon("icon.png")
 class_name GPUTrail3D extends GPUParticles3D
+
 ## [br]A node for creating a ribbon trail effect.
 ## [br][color=purple]Made by celyk[/color]
 ##
@@ -35,6 +36,9 @@ class_name GPUTrail3D extends GPUParticles3D
 
 ## Enable to improve the mapping of [member texture] to the trail
 @export var dewiggle := false : set = _set_dewiggle
+
+## Enable to improve the mapping of [member texture] to the trail
+@export var clip_overlaps := false : set = _set_clip_overlaps
 
 ## Enable [member snap_to_transform] to snap the start of the trail to the nodes position. This may not be noticeable unless you
 ## have changed [member fixed_fps], which you can use to optimize the trail
@@ -113,6 +117,10 @@ func _set_dewiggle(value):
 func _set_snap_to_transform(value):
 	snap_to_transform = value
 	_flags = _set_flag(_flags,4,value)
+	draw_pass_1.material.set_shader_parameter("flags", _flags)
+func _set_clip_overlaps(value):
+	clip_overlaps = value
+	_flags = _set_flag(_flags,5,value)
 	draw_pass_1.material.set_shader_parameter("flags", _flags)
 
 @onready var _old_pos : Vector3 = global_position
