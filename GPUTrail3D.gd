@@ -35,10 +35,10 @@ class_name GPUTrail3D extends GPUParticles3D
 @export var billboard := false : set = _set_billboard
 
 ## Enable to improve the mapping of [member texture] to the trail
-@export var dewiggle := false : set = _set_dewiggle
+@export var dewiggle := true : set = _set_dewiggle
 
 ## Enable to improve the mapping of [member texture] to the trail
-@export var clip_overlaps := false : set = _set_clip_overlaps
+@export var clip_overlaps := true : set = _set_clip_overlaps
 
 ## Enable [member snap_to_transform] to snap the start of the trail to the nodes position. This may not be noticeable unless you
 ## have changed [member fixed_fps], which you can use to optimize the trail
@@ -57,22 +57,23 @@ func _get_property_list():
 func _ready():
 	if not _defaults_have_been_set:
 		_defaults_have_been_set = true
-
+		
+		
 		amount = length
 		lifetime = length
 		explosiveness = 1 # emits all particles at once
 		fixed_fps = 0 # the main fps is default
-
+		
 		process_material = ShaderMaterial.new()
 		process_material.shader = preload("shaders/trail.gdshader")
-
+		
 		draw_pass_1 = QuadMesh.new()
 		draw_pass_1.material = ShaderMaterial.new()
 		draw_pass_1.material.shader = preload("shaders/trail_draw_pass.gdshader")
-
+		
 		draw_pass_1.material.set_shader_parameter("tex", preload(_DEFAULT_TEXTURE))
 		draw_pass_1.material.set_shader_parameter("curve", preload(_DEFAULT_CURVE))
-
+		
 		draw_pass_1.material.resource_local_to_scene = true
 
 func _set_length(value):
@@ -110,6 +111,10 @@ func _set_billboard(value):
 	billboard = value
 	_flags = _set_flag(_flags,2,value)
 	draw_pass_1.material.set_shader_parameter("flags", _flags)
+	if value && _defaults_have_been_set:
+		_update_billboard_transform( global_transform.basis[0] )
+	
+	restart()
 func _set_dewiggle(value):
 	dewiggle = value
 	_flags = _set_flag(_flags,3,value)
@@ -123,8 +128,10 @@ func _set_clip_overlaps(value):
 	_flags = _set_flag(_flags,5,value)
 	draw_pass_1.material.set_shader_parameter("flags", _flags)
 
+
 @onready var _old_pos : Vector3 = global_position
-func _process(dt):
+@onready var _billboard_transform : Transform3D = global_transform
+func _process(delta):
 	if(snap_to_transform):
 		draw_pass_1.material.set_shader_parameter("emmission_transform", global_transform)
 	
@@ -132,25 +139,26 @@ func _process(dt):
 	await RenderingServer.frame_pre_draw
 	
 	if(billboard):
-		var billboard_transform = global_transform
+		var delta_position = global_position - _old_pos
 		
-		var tangent = billboard_transform.basis[1].length() * (global_position - _old_pos).normalized()
-		#billboard_transform[1] = tangent/2.0
-		#billboard_transform[3] += billboard_transform[3]
-		
-		var p = billboard_transform.basis[1]
-		var x = tangent
-		var angle = p.angle_to(x)
-		var rotation_axis = p.cross(x).normalized()
-		if rotation_axis: billboard_transform.basis = billboard_transform.basis.rotated(rotation_axis,angle)
-		billboard_transform.basis = billboard_transform.basis.scaled(Vector3(0.5,0.5,0.5))
-		billboard_transform.origin += billboard_transform.basis[1]
-		
-		#RenderingServer.particles_set_emission_transform( get_base(), global_transform.scaled(Vector3(2,2,2)) )
-		
-		RenderingServer.instance_set_transform( get_instance(), billboard_transform) #get_parent().global_transform.inverse() * billboard_transform )
+		if delta_position:
+			var tangent = global_transform.basis[1].length() * (delta_position).normalized()
+			_update_billboard_transform(tangent)
+
+		RenderingServer.instance_set_transform(get_instance(), _billboard_transform)
 	
 	_old_pos = global_position
+
+func _update_billboard_transform(tangent):
+	_billboard_transform = global_transform
+	var p = _billboard_transform.basis[1]
+	var x = tangent
+	var angle = p.angle_to(x)
+	var rotation_axis = p.cross(x).normalized()
+	if rotation_axis: 
+		_billboard_transform.basis = _billboard_transform.basis.rotated(rotation_axis,angle)
+		_billboard_transform.basis = _billboard_transform.basis.scaled(Vector3(0.5,0.5,0.5))
+		_billboard_transform.origin += _billboard_transform.basis[1]
 
 var _flags = 0
 func _set_flag(i, idx : int, value : bool):
