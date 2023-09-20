@@ -83,11 +83,19 @@ func _ready():
 		draw_pass_1 = QuadMesh.new()
 		draw_pass_1.material = ShaderMaterial.new()
 		draw_pass_1.material.shader = preload("shaders/trail_draw_pass.gdshader")
-		
-		draw_pass_1.material.set_shader_parameter("tex", preload(_DEFAULT_TEXTURE))
-		draw_pass_1.material.set_shader_parameter("curve", preload(_DEFAULT_CURVE))
+
+		color_ramp = preload(_DEFAULT_TEXTURE)
+		curve = preload(_DEFAULT_CURVE)
 		
 		draw_pass_1.material.resource_local_to_scene = true
+	
+	length = length
+	vertical_texture = vertical_texture
+	use_red_as_alpha = use_red_as_alpha
+	billboard = billboard
+	dewiggle = dewiggle
+	clip_overlaps = clip_overlaps
+	snap_to_transform = snap_to_transform
 
 func _set_length(value):
 	length = value
