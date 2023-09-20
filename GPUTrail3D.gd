@@ -1,5 +1,5 @@
 @tool
-@icon("icon.png")
+@icon("bounce.svg")
 class_name GPUTrail3D extends GPUParticles3D
 
 ## [br]A node for creating a ribbon trail effect.
