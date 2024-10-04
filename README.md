@@ -34,8 +34,8 @@ GPUTrail is a GPU-based trail plugin for Godot 4, offering an efficient alternat
 - `use_red_as_alpha`: Use the red channel of the texture as alpha
 - `billboard`: Make the trail face the camera (experimental)
 - `dewiggle`: Improve texture mapping to the trail
-- `clip_overlaps`: Prevent trail self-intersection
-- `snap_to_transform`: Snap the trail start to the node's position
+- `clip_overlaps`: Prevent trail self-intersectionis
+- `snap_to_transform`: Snap the trail start to the node's position, and regardless of the particles own framerate
 
 ## Example
 
@@ -67,6 +67,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Add more polygons, make trail smoother
 - Add an acceleration parameter
 - Add a gizmo/visual indicator of the emission line
+- Simple physics for rising smoke trails
 - Port to Godot 3.5
 - Port to 2D
 - Allow custom material
