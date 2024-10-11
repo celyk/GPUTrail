@@ -7,7 +7,7 @@ render_mode keep_data,disable_force,disable_velocity;
 void process() {
 	// CUSTOM.w tracks the particles place in the trail, in range (0..LIFETIME]
 	// requires that LIFETIME = number of particles
-	const float amount = LIFETIME;
+	float amount = LIFETIME;
 	
 	vec4 a = EMISSION_TRANSFORM * vec4(0,1,0,1);
 	vec4 b = EMISSION_TRANSFORM * vec4(0,-1,0,1);
