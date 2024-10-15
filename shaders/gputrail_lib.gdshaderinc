@@ -98,7 +98,6 @@ void missing_parens(){}
 	 \
 	vec2 raw_uv = base_uv; \
 	 \
-	// Handle UV scrolling \
 	base_uv -= uv_offset; \
 	 \
 	if(vertical_texture){ \

@@ -11,7 +11,7 @@ void vertex(){
 	trail_uv = UV;
 
 	// Scroll textures slowly along the length of the trail
-	UV.x -= fract(TIME*.4);
+	//UV.x -= fract(TIME*.4);
 }
 
 void fragment(){
