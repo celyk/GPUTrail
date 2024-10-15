@@ -26,6 +26,8 @@ class_name GPUTrail3D extends GPUParticles3D
 ## Length is the number of steps in the trail
 @export var length = 100 : set = _set_length
 
+@export_category("Color / texture")
+
 ## The main texture of the trail.[br]
 ## [br]Set [member vertical_texture] to adjust for orientation[br]
 ##
@@ -43,6 +45,9 @@ class_name GPUTrail3D extends GPUParticles3D
 
 ## Enable [member use_red_as_alpha] to use the red color channel of [member texture] as alpha
 @export var use_red_as_alpha := false : set = _set_use_red_as_alpha
+
+
+@export_category("Mesh tweaks")
 
 ## Makes trail face camera. I haven't finished this yet
 @export var billboard := false : set = _set_billboard
