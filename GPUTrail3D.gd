@@ -32,6 +32,7 @@ class_name GPUTrail3D extends GPUParticles3D
 ## [br]Enable [member use_red_as_alpha] to use the red color channel as alpha
 @export var texture : Texture : set = _set_texture
 
+## Scolls the texture by applying an offset to the UV
 @export var scroll : Vector2 : set = _set_scroll
 
 ## A color ramp for modulating the color along the length of the trail
