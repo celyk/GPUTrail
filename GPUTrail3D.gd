@@ -21,7 +21,8 @@ class_name GPUTrail3D extends GPUParticles3D
 # PUBLIC
 
 ## Length is the number of steps in the trail
-@export var length = 100 : set = _set_length
+@export var length : int = 100 : set = _set_length
+@export var length_seconds : float : set = _set_length
 
 @export_category("Color / texture")
 
@@ -77,7 +78,13 @@ func _ready():
 		amount = length
 		lifetime = length
 		explosiveness = 1 # emits all particles at once
-		fixed_fps = 0 # the main fps is default
+		
+		# the main fps is default
+		fixed_fps = int( DisplayServer.screen_get_refresh_rate(DisplayServer.MAIN_WINDOW_ID) )
+		
+		if DisplayServer.screen_get_refresh_rate(DisplayServer.MAIN_WINDOW_ID) < 0.0:
+			push_warning("Could not find screen refresh rate. Using fixed_fps = 60")
+			fixed_fps = 60
 		
 		process_material = ShaderMaterial.new()
 		process_material.shader = preload("shaders/trail.gdshader")
@@ -100,13 +107,19 @@ func _ready():
 	snap_to_transform = snap_to_transform
 
 func _set_length(value):
-	length = value
+	if value is int: # length is being set
+		length = value
+		length_seconds = float(value) / get_fixed_fps()
+	elif value is float: # length_seconds is being set
+		length = int(value * get_fixed_fps())
+		length_seconds = value
 	
 	if _defaults_have_been_set:
-		amount = value
-		lifetime = value
+		amount = length
+		lifetime = length
 	
 	restart()
+
 func _set_texture(value):
 	texture = value
 	if value: 
