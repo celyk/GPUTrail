@@ -125,6 +125,7 @@ func _set_length(value):
 
 func _set_texture(value):
 	texture = value
+	_uv_offset = Vector2(0,0) # Reset the scroll when a new texture is assigned
 	if value: 
 		draw_pass_1.material.set_shader_parameter("tex", texture)
 	else:
