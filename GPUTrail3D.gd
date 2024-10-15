@@ -24,13 +24,15 @@ class_name GPUTrail3D extends GPUParticles3D
 @export var length : int = 100 : set = _set_length
 @export var length_seconds : float : set = _set_length
 
-@export_category("Color / texture")
+@export_category("Color / Texture")
 
 ## The main texture of the trail.[br]
 ## [br]Set [member vertical_texture] to adjust for orientation[br]
 ##
 ## [br]Enable [member use_red_as_alpha] to use the red color channel as alpha
 @export var texture : Texture : set = _set_texture
+
+@export var scroll : Vector2 : set = _set_scroll
 
 ## A color ramp for modulating the color along the length of the trail
 @export var color_ramp : GradientTexture1D : set = _set_color_ramp
@@ -126,6 +128,8 @@ func _set_texture(value):
 		draw_pass_1.material.set_shader_parameter("tex", texture)
 	else:
 		draw_pass_1.material.set_shader_parameter("tex", preload(_DEFAULT_TEXTURE))
+func _set_scroll(value):
+	scroll = value
 func _set_color_ramp(value):
 	color_ramp = value
 	draw_pass_1.material.set_shader_parameter("color_ramp", color_ramp)
@@ -167,10 +171,15 @@ func _set_clip_overlaps(value):
 
 @onready var _old_pos : Vector3 = global_position
 @onready var _billboard_transform : Transform3D = global_transform
+var _uv_offset : Vector2
 func _process(delta):
 	if(snap_to_transform):
 		draw_pass_1.material.set_shader_parameter("emmission_transform", global_transform)
 	
+	# Handle UV scrolling
+	_uv_offset += scroll * delta
+	_uv_offset = _uv_offset.posmod(1.0)
+	draw_pass_1.material.set_shader_parameter("uv_offset", _uv_offset)
 	
 	await RenderingServer.frame_pre_draw
 	

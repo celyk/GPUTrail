@@ -2,7 +2,8 @@ shader_type spatial;
 
 render_mode unshaded,world_vertex_coords,cull_disabled;
 
-uniform sampler2D tex : repeat_disable, source_color, hint_default_white;
+uniform sampler2D tex : repeat_enable, source_color, hint_default_white;
+uniform vec2 uv_offset = vec2(0);
 uniform sampler2D color_ramp : repeat_disable, source_color, hint_default_white;
 uniform sampler2D curve : repeat_disable, hint_default_white;
 uniform mat4 emmission_transform = mat4(1);
@@ -63,7 +64,6 @@ void vertex(){
 	vec3 b = mix(my_model_matrix[2].xyz,my_model_matrix[3].xyz,UV.x);
 
 	UV.x = (UV.x + INSTANCE_CUSTOM.w-1.0 - 2.0)/(INSTANCE_CUSTOM.z-1.0);
-
 	
 	float h = textureLod(curve, vec2(UV.x), 0.0).x;//h=1.0;
 	
@@ -101,7 +101,10 @@ void fragment(){
 	}
 	
 	vec2 raw_uv = base_uv;
-
+	
+	// Handle UV scrolling
+	base_uv -= uv_offset;
+	
 	if(vertical_texture){
 		base_uv = base_uv.yx;
 	}

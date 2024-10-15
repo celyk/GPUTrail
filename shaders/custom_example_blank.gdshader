@@ -6,10 +6,10 @@ shader_type spatial;
 varying vec2 trail_uv;
 void vertex(){
 	PREPARE_TRAIL();
-	
+
 }
 
 void fragment(){
 	PREPARE_TRAIL_TEXTURES();
-	
+
 }
