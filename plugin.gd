@@ -1,7 +1,7 @@
 @tool
 extends EditorPlugin
 
-const MyCustomGizmoPlugin = preload("gizmo/gizmo.gd")
+const MyCustomGizmoPlugin = preload("gizmos/gizmo.gd")
 var gizmo_plugin = MyCustomGizmoPlugin.new(self)
 
 func _enter_tree():
