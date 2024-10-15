@@ -60,13 +60,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## TODO
 
-- Add categories for parameters
 - Add flipbook support
 - Hide the actual GPUParticles3D node
 - Restructure code, use enums for flags
 - Add more polygons, make trail smoother
-- Add an acceleration parameter / Simple physics for rising smoke trails
-- Add a gizmo/visual indicator of the emission line
+- Add an acceleration parameter
 - Port to Godot 3.5
 - Port to 2D
 - Allow custom material
