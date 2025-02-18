@@ -112,10 +112,12 @@ func _ready():
 func _set_length(value):
 	if value is int: # length is being set
 		length = value
-		length_seconds = float(value) / get_fixed_fps()
+		length = max(length, 1)
+		length_seconds = float(length) / get_fixed_fps()
 	elif value is float: # length_seconds is being set
 		length = int(value * get_fixed_fps())
-		length_seconds = value
+		length = max(length, 1)
+		length_seconds = float(length) / get_fixed_fps()
 	
 	if _defaults_have_been_set:
 		amount = length
