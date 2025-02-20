@@ -112,12 +112,10 @@ func _ready():
 func _set_length(value):
 	if value is int: # length is being set
 		length = value
-		length = max(length, 1)
-		length_seconds = float(length) / get_fixed_fps()
+		length_seconds = float(value) / get_fixed_fps()
 	elif value is float: # length_seconds is being set
 		length = int(value * get_fixed_fps())
-		length = max(length, 1)
-		length_seconds = float(length) / get_fixed_fps()
+		length_seconds = value
 	
 	if _defaults_have_been_set:
 		amount = length
@@ -177,6 +175,9 @@ func _set_clip_overlaps(value):
 @onready var _billboard_transform : Transform3D = global_transform
 var _uv_offset : Vector2
 func _process(delta):
+	if not is_inside_tree():
+		return
+		
 	if(snap_to_transform):
 		draw_pass_1.material.set_shader_parameter("emmission_transform", global_transform)
 	
@@ -185,26 +186,31 @@ func _process(delta):
 	_uv_offset = _uv_offset.posmod(1.0)
 	draw_pass_1.material.set_shader_parameter("uv_offset", _uv_offset)
 	
-	await RenderingServer.frame_pre_draw
-	
-	if(billboard):
-		var delta_position = global_position - _old_pos
+	# Only await if we're still in the tree
+	if is_inside_tree():
+		await RenderingServer.frame_pre_draw
 		
-		if delta_position:
-			var tangent = global_transform.basis[1].length() * (delta_position).normalized()
-			_update_billboard_transform(tangent)
+		if not is_inside_tree():
+			return
+			
+		if(billboard):
+			var delta_position = global_position - _old_pos
+			
+			if delta_position:
+				var tangent = global_transform.basis[1].length() * (delta_position).normalized()
+				_update_billboard_transform(tangent)
 
-		RenderingServer.instance_set_transform(get_instance(), _billboard_transform)
-	
-	_old_pos = global_position
+			RenderingServer.instance_set_transform(get_instance(), _billboard_transform)
+		
+		_old_pos = global_position
 
-func _update_billboard_transform(tangent : Vector3):
+func _update_billboard_transform(tangent):
 	_billboard_transform = global_transform
-	var p : Vector3 = _billboard_transform.basis[1]
-	var x : Vector3 = tangent
-	var angle : float = p.angle_to(x)
-	var rotation_axis : Vector3 = p.cross(x).normalized()
-	if rotation_axis != Vector3():
+	var p = _billboard_transform.basis[1]
+	var x = tangent
+	var angle = p.angle_to(x)
+	var rotation_axis = p.cross(x).normalized()
+	if rotation_axis: 
 		_billboard_transform.basis = _billboard_transform.basis.rotated(rotation_axis,angle)
 		_billboard_transform.basis = _billboard_transform.basis.scaled(Vector3(0.5,0.5,0.5))
 		_billboard_transform.origin += _billboard_transform.basis[1]
