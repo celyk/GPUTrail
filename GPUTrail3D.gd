@@ -33,7 +33,7 @@ class_name GPUTrail3D extends GPUParticles3D
 @export var texture : Texture : set = _set_texture
 
 ## Scolls the texture by applying an offset to the UV
-@export var scroll : Vector2 : set = _set_scroll
+@export var scroll : Vector2
 
 ## A color ramp for modulating the color along the length of the trail
 @export var color_ramp : GradientTexture1D : set = _set_color_ramp
@@ -66,8 +66,8 @@ class_name GPUTrail3D extends GPUParticles3D
 
 # PRIVATE
 
-const _DEFAULT_TEXTURE = "defaults/texture.tres"
-const _DEFAULT_CURVE = "defaults/curve.tres"
+const _DEFAULT_TEXTURE = preload("defaults/texture.tres")
+const _DEFAULT_CURVE = preload("defaults/curve.tres")
 
 var _defaults_have_been_set = false
 func _get_property_list():
@@ -96,28 +96,27 @@ func _ready():
 		draw_pass_1.material = ShaderMaterial.new()
 		draw_pass_1.material.shader = preload("shaders/trail_draw_pass.gdshader")
 
-		color_ramp = preload(_DEFAULT_TEXTURE)
-		curve = preload(_DEFAULT_CURVE)
+		color_ramp = _DEFAULT_TEXTURE
+		curve = _DEFAULT_CURVE
 		
 		draw_pass_1.material.resource_local_to_scene = true
 	
 	length = length
-	vertical_texture = vertical_texture
-	use_red_as_alpha = use_red_as_alpha
-	billboard = billboard
-	dewiggle = dewiggle
-	clip_overlaps = clip_overlaps
-	snap_to_transform = snap_to_transform
+	# Set flags
+	_flags = (int(vertical_texture) | 
+		(int(use_red_as_alpha) << 1) | 
+		(int(billboard) << 2) | 
+		(int(dewiggle) << 3) | 
+		(int(snap_to_transform) << 4) | 
+		(int(clip_overlaps) << 5))
+	draw_pass_1.material.set_shader_parameter("flags", _flags)
+	_update_billboard_transform(global_transform.basis[0])
 
 func _set_length(value):
-	if value is int: # length is being set
-		length = value
-		length = max(length, 1)
-		length_seconds = float(length) / get_fixed_fps()
-	elif value is float: # length_seconds is being set
-		length = int(value * get_fixed_fps())
-		length = max(length, 1)
-		length_seconds = float(length) / get_fixed_fps()
+	if value is float: # length_seconds is being set, convert to length
+		value = int(value * get_fixed_fps())
+	length = max(value, 1)
+	length_seconds = float(length) / get_fixed_fps()
 	
 	if _defaults_have_been_set:
 		amount = length
@@ -126,56 +125,50 @@ func _set_length(value):
 	restart()
 
 func _set_texture(value):
-	texture = value
-	_uv_offset = Vector2(0,0) # Reset the scroll when a new texture is assigned
-	if value: 
-		draw_pass_1.material.set_shader_parameter("tex", texture)
-	else:
-		draw_pass_1.material.set_shader_parameter("tex", preload(_DEFAULT_TEXTURE))
-func _set_scroll(value):
-	scroll = value
+	texture = value if value else _DEFAULT_TEXTURE
+	_uv_offset = Vector2.ZERO # Reset the scroll when a new texture is assigned
+	draw_pass_1.material.set_shader_parameter("tex", texture)
+
 func _set_color_ramp(value):
 	color_ramp = value
 	draw_pass_1.material.set_shader_parameter("color_ramp", color_ramp)
+
 func _set_curve(value):
-	curve = value
-	if value: 
-		draw_pass_1.material.set_shader_parameter("curve", curve)
-	else:
-		draw_pass_1.material.set_shader_parameter("curve", preload(_DEFAULT_CURVE))
+	curve = value if value else _DEFAULT_CURVE
+	draw_pass_1.material.set_shader_parameter("curve", curve)
+
 func _set_vertical_texture(value):
 	vertical_texture = value
-	_flags = _set_flag(_flags,0,value)
-	draw_pass_1.material.set_shader_parameter("flags", _flags)
+	_set_flag(0, value)
+
 func _set_use_red_as_alpha(value):
 	use_red_as_alpha = value
-	_flags = _set_flag(_flags,1,value)
-	draw_pass_1.material.set_shader_parameter("flags", _flags)
+	_set_flag(1, value)
+
 func _set_billboard(value):
 	billboard = value
-	_flags = _set_flag(_flags,2,value)
-	draw_pass_1.material.set_shader_parameter("flags", _flags)
-	if value && _defaults_have_been_set:
-		_update_billboard_transform( global_transform.basis[0] )
+	_set_flag(2, value)
+	if value and _defaults_have_been_set:
+		_update_billboard_transform(global_transform.basis[0])
 	
 	restart()
+
 func _set_dewiggle(value):
 	dewiggle = value
-	_flags = _set_flag(_flags,3,value)
-	draw_pass_1.material.set_shader_parameter("flags", _flags)
+	_set_flag(3, value)
+
 func _set_snap_to_transform(value):
 	snap_to_transform = value
-	_flags = _set_flag(_flags,4,value)
-	draw_pass_1.material.set_shader_parameter("flags", _flags)
+	_set_flag(4, value)
+
 func _set_clip_overlaps(value):
 	clip_overlaps = value
-	_flags = _set_flag(_flags,5,value)
-	draw_pass_1.material.set_shader_parameter("flags", _flags)
-
+	_set_flag(5, value)
 
 @onready var _old_pos : Vector3 = global_position
 @onready var _billboard_transform : Transform3D = global_transform
 var _uv_offset : Vector2
+
 func _process(delta):
 	if(snap_to_transform):
 		draw_pass_1.material.set_shader_parameter("emmission_transform", global_transform)
@@ -201,14 +194,15 @@ func _process(delta):
 func _update_billboard_transform(tangent : Vector3):
 	_billboard_transform = global_transform
 	var p : Vector3 = _billboard_transform.basis[1]
-	var x : Vector3 = tangent
-	var angle : float = p.angle_to(x)
-	var rotation_axis : Vector3 = p.cross(x).normalized()
-	if rotation_axis != Vector3():
-		_billboard_transform.basis = _billboard_transform.basis.rotated(rotation_axis,angle)
-		_billboard_transform.basis = _billboard_transform.basis.scaled(Vector3(0.5,0.5,0.5))
-		_billboard_transform.origin += _billboard_transform.basis[1]
+	var angle : float = p.angle_to(tangent)
+	var rotation_axis : Vector3 = p.cross(tangent).normalized()
+	if rotation_axis != Vector3.ZERO:
+		_billboard_transform.basis = _billboard_transform.basis.rotated(rotation_axis, angle)
+		_billboard_transform.basis = _billboard_transform.basis.scaled(Vector3(0.5, 0.5, 0.5))
+		_billboard_transform.origin += p
 
-var _flags = 0
-func _set_flag(i, idx : int, value : bool):
-	return (i & ~(1 << idx)) | (int(value) << idx)
+var _flags: int = 0
+
+func _set_flag(idx : int, value : bool):
+	_flags |= int(value) << idx
+	draw_pass_1.material.set_shader_parameter("flags", _flags)
