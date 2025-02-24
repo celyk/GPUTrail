@@ -178,7 +178,13 @@ func _process(delta):
 	_uv_offset = _uv_offset.posmod(1.0)
 	draw_pass_1.material.set_shader_parameter("uv_offset", _uv_offset)
 	
+	if not is_inside_tree():
+		return
+	
 	await RenderingServer.frame_pre_draw
+	
+	if not is_inside_tree():
+		return
 	
 	if(billboard):
 		var delta_position = global_position - _old_pos
