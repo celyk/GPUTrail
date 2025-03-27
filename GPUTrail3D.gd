@@ -96,8 +96,8 @@ func _ready():
 		draw_pass_1.material = ShaderMaterial.new()
 		draw_pass_1.material.shader = preload("shaders/trail_draw_pass.gdshader")
 
-		color_ramp = preload(_DEFAULT_TEXTURE)
-		curve = preload(_DEFAULT_CURVE)
+		color_ramp = preload(_DEFAULT_TEXTURE).duplicate(true)
+		curve = preload(_DEFAULT_CURVE).duplicate(true)
 		
 		draw_pass_1.material.resource_local_to_scene = true
 	
