@@ -4,9 +4,9 @@ class_name GPUTrail3D extends GPUParticles3D
 
 ## [br]A node for creating a ribbon trail effect.
 ## [br][color=purple]Made by celyk[/color]
+## @tutorial(celyk's repo): https://github.com/celyk/godot-useful-stuff
 ##
 ## This node serves as an alternative to CPU based trails.[br]
-
 
 # TODO:
 # Add flipbook support
