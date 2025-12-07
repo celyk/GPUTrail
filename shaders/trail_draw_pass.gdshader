@@ -3,6 +3,8 @@ shader_type spatial;
 render_mode unshaded,world_vertex_coords,cull_disabled;
 
 uniform sampler2D tex : repeat_enable, source_color, hint_default_white;
+uniform sampler2D mask : hint_default_white;
+uniform float mask_strength = 1.0;
 uniform vec2 uv_offset = vec2(0);
 uniform sampler2D color_ramp : repeat_disable, source_color, hint_default_white;
 uniform sampler2D curve : repeat_disable, hint_default_white;
@@ -110,12 +112,13 @@ void fragment(){
 	}
 
 	vec4 T = textureLod(tex, base_uv, 0.0);
+	vec4 M = textureLod(mask, base_uv, 0.0);
 	ALBEDO = T.rgb;
 	ALPHA = T.a;
 
 	if(use_red_as_alpha){
 		ALBEDO = vec3(1);
-		ALPHA = T.r;
+		ALPHA = T.r * (M.r * mask_strength);
 	}
 
 	T = textureLod(color_ramp, raw_uv, 0.0);
