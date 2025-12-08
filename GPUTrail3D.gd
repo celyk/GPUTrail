@@ -145,7 +145,7 @@ func _set_mask(value)
 	else:
 		draw_pass_1.material.set_shader_parameter("mask", preload(_DEFAULT_TEXTURE))
 func _set_mask_strength(value)
-  mask_strength = clamp(value,0.0,1.0)
+	mask_strength = clamp(value,0.0,1.0)
 	if value:
 		draw_pass_1.material.set_shader_parameter("mask_strength", mask_strength)
 	else:
