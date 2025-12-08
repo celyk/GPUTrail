@@ -112,18 +112,20 @@ void fragment(){
 	}
 
 	vec4 T = textureLod(tex, base_uv, 0.0);
-	vec4 M = textureLod(mask, base_uv, 0.0);
 	ALBEDO = T.rgb;
 	ALPHA = T.a;
 
 	if(use_red_as_alpha){
 		ALBEDO = vec3(1);
-		ALPHA = T.r * (M.r * mask_strength);
+		ALPHA = T.r;
 	}
 
 	T = textureLod(color_ramp, raw_uv, 0.0);
 	ALBEDO *= T.rgb;
 	ALPHA *= T.a;
+
+	vec4 M = textureLod(mask, base_uv, 0.0);
+	ALPHA *= (M.r * mask_strength);
 
 	//ALBEDO = vec3(UV,0);
 
