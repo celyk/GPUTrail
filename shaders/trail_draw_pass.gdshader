@@ -5,6 +5,9 @@ render_mode unshaded,world_vertex_coords,cull_disabled;
 uniform sampler2D tex : repeat_enable, source_color, hint_default_white;
 uniform sampler2D mask : hint_default_white;
 uniform float mask_strength = 1.0;
+uniform sampler2D fade_curve: repeat_disable, hint_default_white;
+uniform float fade_curve_intensity = 1.0;
+uniform float alpha = 1.0;
 uniform vec2 uv_offset = vec2(0);
 uniform sampler2D color_ramp : repeat_disable, source_color, hint_default_white;
 uniform sampler2D curve : repeat_disable, hint_default_white;
@@ -27,6 +30,7 @@ uniform bool snap_to_transform = false;*/
 varying float scale_interp;
 varying vec2 clip;
 varying vec2 mesh_uv;
+varying float particle_lifetime;
 void vertex(){
 	mesh_uv = UV;
 
@@ -76,6 +80,7 @@ void vertex(){
 		UV *= scale_interp;
 	}
 
+	particle_lifetime = INSTANCE_CUSTOM.y;
 
 	clip.x = dot(VERTEX - INV_VIEW_MATRIX[3].xyz,cross(my_model_matrix[1].xyz - INV_VIEW_MATRIX[3].xyz,my_model_matrix[2].xyz - INV_VIEW_MATRIX[3].xyz));
 	clip.y = dot(VERTEX - INV_VIEW_MATRIX[3].xyz,cross(my_model_matrix[3].xyz - INV_VIEW_MATRIX[3].xyz,my_model_matrix[0].xyz - INV_VIEW_MATRIX[3].xyz));
@@ -120,16 +125,22 @@ void fragment(){
 		ALPHA = T.r;
 	}
 
+	vec4 F = textureLod(fade_curve, raw_uv, 0.0);
+	float fade_alpha = F.x * (fade_curve_intensity - (particle_lifetime * fade_curve_intensity));
+	ALPHA *= fade_alpha;
+
 	T = textureLod(color_ramp, raw_uv, 0.0);
+	float texture_alpha = T.a;
 	ALBEDO *= T.rgb;
-	ALPHA *= T.a;
+	ALPHA *= texture_alpha;
 
-	vec4 M = textureLod(mask, base_uv, 0.0);
-	ALPHA *= (M.r * mask_strength);
-
-	//ALBEDO = vec3(UV,0);
+	vec4 M = textureLod(mask, raw_uv, 0.0);
+	float mask_alpha = (M.r * mask_strength);
+	ALPHA *= mask_alpha;
 
 	if((base_uv.x < .01) || (.99 < base_uv.x)){
 		//ALBEDO = vec3(1,0,1);
 	}
+
+	ALPHA *= alpha;
 }

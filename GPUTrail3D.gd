@@ -20,6 +20,10 @@ class_name GPUTrail3D extends GPUParticles3D
 
 # PUBLIC
 
+## Active determines if the trails render or not
+@export var active := true : set = _set_active
+
+@export_category("Length")
 ## Length is the number of steps in the trail
 @export var length : int = 100 : set = _set_length
 @export var length_seconds : float : set = _set_length
@@ -52,6 +56,26 @@ class_name GPUTrail3D extends GPUParticles3D
 
 ## Enable [member use_red_as_alpha] to use the red color channel of [member texture] as alpha
 @export var use_red_as_alpha := false : set = _set_use_red_as_alpha
+
+## An independent alpha value to control total trail transparency. Is also modified if using Fade In Seconds or Fade Out Seconds
+@export var alpha : float = 1.0 : set = _set_alpha
+
+
+@export_category("Fade")
+## Fade Curve is a texture that is used to determine the alpha of the trail over it's lifetime
+@export var fade_curve : CurveTexture : set = _set_fade_curve
+## Fade Curve Intensity is a value used to modify the strength of the Fade Curve
+@export var fade_curve_intensity: float = 1.0 : set = _set_fade_curve_intensity
+
+## Fade In Seconds is how many seconds it takes to fade in the trail if active is set to true
+@export var fade_in_seconds : float = 0.0 : set = _set_fade_in_seconds
+## Fade In Alpha is the Alpha value that the whole trail will go to. The alpha value is also a parameter on the trail
+@export var fade_in_alpha : float = 1.0 : set = _set_fade_in_alpha
+
+## Fade Out Seconds is how many seconds it takes to fade out the trail if active is set to false
+@export var fade_out_seconds : float = 0.0 : set = _set_fade_out_seconds
+## Fade Out Alpha is the Alpha value that the whole trail will go to. The alpha value is also a parameter on the trail
+@export var fade_out_alpha : float = 0.0 : set = _set_fade_out_alpha
 
 
 @export_category("Mesh tweaks")
@@ -115,6 +139,34 @@ func _ready():
 	clip_overlaps = clip_overlaps
 	snap_to_transform = snap_to_transform
 
+func _set_active(value):
+	active = value
+	if active and fade_in_seconds > 0.0:
+		process_material.set_shader_parameter("active", active)
+		restart()
+		var tween: Tween = create_tween()
+		tween.tween_property(self, "alpha", fade_in_alpha, fade_in_seconds)
+	elif not active and fade_out_seconds > 0.0:
+		var tween: Tween = create_tween()
+		tween.tween_property(self, "alpha", fade_out_alpha, fade_out_seconds)
+		tween.tween_callback(func(): process_material.set_shader_parameter("active", active))
+	else:
+		process_material.set_shader_parameter("active", active)
+		_set_alpha(fade_in_alpha)
+		restart()
+
+func _set_fade_in_seconds(value):
+	fade_in_seconds = value
+
+func _set_fade_out_seconds(value):
+	fade_out_seconds = value
+
+func _set_fade_in_alpha(value):
+	fade_in_alpha = value
+
+func _set_fade_out_alpha(value):
+	fade_out_alpha = value
+
 func _set_length(value):
 	if value is int: # length is being set
 		length = value
@@ -161,6 +213,21 @@ func _set_curve(value):
 		draw_pass_1.material.set_shader_parameter("curve", curve)
 	else:
 		draw_pass_1.material.set_shader_parameter("curve", preload(_DEFAULT_CURVE))
+func _set_alpha(value):
+	alpha = clamp(value,0.0,1.0)
+	if value:
+		draw_pass_1.material.set_shader_parameter("alpha", value)
+	else:
+		draw_pass_1.material.set_shader_parameter("alpha", 1.0)
+func _set_fade_curve(value):
+	fade_curve = value
+	draw_pass_1.material.set_shader_parameter("fade_curve", fade_curve)
+func _set_fade_curve_intensity(value):
+	fade_curve_intensity = clamp(value,0.0,10.0)
+	if value:
+		draw_pass_1.material.set_shader_parameter("fade_curve_intensity", value)
+	else:
+		draw_pass_1.material.set_shader_parameter("fade_curve_intensity", 1.0)
 func _set_vertical_texture(value):
 	vertical_texture = value
 	_flags = _set_flag(_flags,0,value)
