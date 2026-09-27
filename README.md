@@ -15,7 +15,7 @@ GPUTrail is a GPU-based trail plugin for Godot 4, offering an efficient alternat
 ## Installation
 
 1. Clone or download this repository
-2. Copy the `addons/GPUTrail` folder into your Godot project's `addons` folder
+2. Copy the folder into your `addons/`, so that the root of this repo is located at `res://addons/GPUTrail`
 3. Enable the plugin in your project settings: Project -> Project Settings -> Plugins -> GPUTrail
 
 ## Usage
